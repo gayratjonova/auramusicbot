@@ -23,6 +23,7 @@ from telebot import types
 
 # ✅ Tokeningiz va Kanal ID-ngiz
 BOT_TOKEN = "8941945580:AAHstPw8wqnxrWTjD8-PMP7a_k9ATlndS_U"
+
 KANAL_ID = "-1003824716595" 
 
 bot = telebot.TeleBot(BOT_TOKEN)
