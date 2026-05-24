@@ -118,34 +118,4 @@ def callback_tekshir(call):
         bot.answer_callback_query(call.id, "❌ Siz hali kanalga a'zo bo'lmadingiz!", show_alert=True)
 
 @bot.message_handler(func=lambda message: True)
-def musiqani_qidir(message):
-    user_id = message.from_user.id
-    if not obunani_tekshir(user_id):
-        obuna_oynasi_yubor(message.chat.id)
-        return
-
-    qidiruv_matni = message.text.lower()
-    conn = sqlite3.connect("musiqalar.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT nom, file_id FROM qoshiqlar WHERE nom LIKE ?", ('%' + qidiruv_matni + '%',))
-    natijalar = cursor.fetchall()
-    conn.close()
     
-    if natijalar:
-        bot.send_message(message.chat.id, f"🔍 {len(natijalar)} ta musiqa topildi! Yuklanmoqda...")
-        for nom, file_id in natijalar[:5]:
-            try:
-                bot.send_audio(message.chat.id, file_id)
-            except Exception as e:
-                print(f"Xatolik: {e}")
-    else:
-        bot.send_message(message.chat.id, "😔 Kechirasiz, AuraMusic bazasidan bunday musiqa topilmadi. Boshqa nom yozib ko'ring.")
-
-print("Bot OP (Majburiy obuna) bilan ishga tushdi...")
-while True:
-    try:
-        bot.infinity_polling(timeout=10, long_polling_timeout=5)
-    except Exception as e:
-        print(f"Xatolik: {e}")
-        time.sleep(5)
-            
