@@ -1,5 +1,10 @@
+import os
 from flask import Flask
 import threading
+import telebot
+import sqlite3
+import time
+from telebot import types
 
 app = Flask('')
 
@@ -8,22 +13,17 @@ def home():
     return "Bot yoniq!"
 
 def run():
-    app.run(host='0.0.0.0', port=8080)
+    # Portni Render o'zi avtomat belgilaydi, bo'lmasa 8080 oladi
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
 
 # Render oʻchirib qoʻymasligi uchun orqa fonda port ochish
 threading.Thread(target=run).start()
 
 # =========================================================
-# ASOSIY BOT KODI SHU YERDAN DAVOM ETADI:
+# ASOSIY BOT KODI
 # =========================================================
-import telebot
-import sqlite3
-import time
-from telebot import types
-
-# ✅ Tokeningiz va Kanal ID-ngiz
 BOT_TOKEN = "8941945580:AAHstPw8wqnxrWTjD8-PMP7a_k9ATlndS_U"
-
 KANAL_ID = "-1003824716595" 
 
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -118,4 +118,31 @@ def callback_tekshir(call):
         bot.answer_callback_query(call.id, "❌ Siz hali kanalga a'zo bo'lmadingiz!", show_alert=True)
 
 @bot.message_handler(func=lambda message: True)
+def musiqani_qidir(message):
+    user_id = message.from_user.id
+    if not obunani_tekshir(user_id):
+        obuna_oynasi_yubor(message.chat.id)
+        return
+
+    qidiruv_matni = message.text.lower()
+    conn = sqlite3.connect("musiqalar.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT nom, file_id FROM qoshiqlar WHERE nom LIKE ?", ('%' + qidiruv_matni + '%',))
+    natijalar = cursor.fetchall()
+    conn.close()
+    
+    if natijalar:
+        bot.send_message(message.chat.id, f"🔍 {len(natijalar)} ta musiqa topildi! Yuklanmoqda...")
+        for nom, file_id in natijalar[:5]:
+            try:
+                bot.send_audio(message.chat.id, file_id)
+            except Exception as e:
+                print(f"Xatolik: {e}")
+    else:
+        bot.send_message(message.chat.id, "😔 Kechirasiz, AuraMusic bazasidan bunday musiqa topilmadi. Boshqa nom yozib ko'ring.")
+
+# Render uchun eng xavfsiz va to'xtab qolmaydigan yuklash usuli
+print("Bot muvaffaqiyatli ishga tushdi...")
+bot.polling(none_stop=True, interval=0)
+            
     
