@@ -1,15 +1,32 @@
+from flask import Flask
+import threading
+
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot yoniq!"
+
+def run():
+    app.run(host='0.0.0.0', port=8080)
+
+# Render oʻchirib qoʻymasligi uchun orqa fonda port ochish
+threading.Thread(target=run).start()
+
+# =========================================================
+# ASOSIY BOT KODI SHU YERDAN DAVOM ETADI:
+# =========================================================
 import telebot
 import sqlite3
 import time
 from telebot import types
 
-# ⚠️ O'ZINGIZNING TOKENINGIZ VA KANAL ID-SINI TEKSHIRIB OLING!
-BOT_TOKEN = "8941945580:AAHstPw8wqnXrWTjD8-PMP7a_k9ATlnDS_U"
+# ✅ Tokeningiz va Kanal ID-ngiz
+BOT_TOKEN = "8941945580:AAHstPw8wqnxrWTjD8-PMP7a_k9ATlndS_U"
 KANAL_ID = "-1003824716595" 
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# 💾 BAZA BILAN ISHLASh
 def baza_yarat():
     conn = sqlite3.connect("musiqalar.db")
     cursor = conn.cursor()
@@ -25,7 +42,6 @@ def baza_yarat():
 
 baza_yarat()
 
-# 🔍 OBUNANI TEKSHIRISH FUNKSIYASI
 def obunani_tekshir(user_id):
     try:
         azo_holati = bot.get_chat_member(KANAL_ID, user_id).status
@@ -36,7 +52,6 @@ def obunani_tekshir(user_id):
         print(f"Obunani tekshirishda xatolik: {e}")
         return True
 
-# 📋 MAJBURIY OBUNA OYNASINI KO'RSATISH
 def obuna_oynasi_yubor(chat_id):
     try:
         kanal_info = bot.get_chat(KANAL_ID)
@@ -67,7 +82,6 @@ def salom_ber(message):
     else:
         obuna_oynasi_yubor(message.chat.id)
 
-# 📥 KANALDAN MUSIQA QABUL QILISH
 @bot.channel_post_handler(content_types=['audio'])
 def kanaldan_musiqa_ol(message):
     if str(message.chat.id) == str(KANAL_ID):
@@ -93,7 +107,6 @@ def kanaldan_musiqa_ol(message):
         conn.close()
         print(f"💾 Bazaga saqlandi: {toliq_nom}")
 
-# TUGMA BOSILGANDA TEKSHIRISH
 @bot.callback_query_handler(func=lambda call: call.data == "tekshir_obuna")
 def callback_tekshir(call):
     if obunani_tekshir(call.from_user.id):
@@ -103,7 +116,6 @@ def callback_tekshir(call):
     else:
         bot.answer_callback_query(call.id, "❌ Siz hali kanalga a'zo bo'lmadingiz!", show_alert=True)
 
-# 🔍 FOYDALANUVChI QIDIRGANDA JAVOB BERISh
 @bot.message_handler(func=lambda message: True)
 def musiqani_qidir(message):
     user_id = message.from_user.id
@@ -135,4 +147,4 @@ while True:
     except Exception as e:
         print(f"Xatolik: {e}")
         time.sleep(5)
-      
+            
